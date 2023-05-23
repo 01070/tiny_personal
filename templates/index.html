@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<form method="POST">
+    {{ form.database.label }}{{ form.database }}<br>
+    {{ form.table.label }}{{ form.table }}<br>
+
+    {{ form.submit }}<br>
+    {% for message in get_flashed_messages() %}
+        {{ message }}
+
+    {% endfor %}
+
+</form>
+
+</body>
+</html>
