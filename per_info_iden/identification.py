@@ -20,12 +20,14 @@ def mkdir(path):
 
 
 def info_identification(data, tableName, path2="Intermediate_data/per_info/识别记录保存", ner_func="lac", recall_mode=False):
-
+    # 如果是张空表，直接跳过
+    if len(data) == 0:
+        return None
     if not os.path.exists(path2):
         mkdir(path2)
 
     # pi.query_all_fields中tempo_column_list用于生成识别记录保存，tempo_column_list列名
-    tempo_list, tempo_records_list, tempo_column_list = pi.query_all_fields(data, ner_func=ner_func,
+    tempo_list, tempo_records_list, tempo_column_list, global_records_list = pi.query_all_fields(data, ner_func=ner_func,
                                                                             recall_mode=recall_mode)
 
     # tempo_df_fre = pd.DataFrame({
@@ -37,34 +39,70 @@ def info_identification(data, tableName, path2="Intermediate_data/per_info/识�
     #     'test_res': tempo_list[3]
     # })
     keys = ['phone_records', 'ID_records', 'bank_records', 'car_id_records', 'name_records']
+    # 用于保存所有的字段识别到的结果
+    output_dataframe_list = []
     for record_index in range(len(tempo_records_list)):
+        # 若这个记录是空的，直接跳过
+        if tempo_records_list[record_index] is None:
+            continue
+        field_name = tempo_column_list[record_index]
+        # 记录所有出现的记录行
+        # 获取原始数据
+
+        global_records = global_records_list[record_index]
+
+        if len(global_records) > 0:
+
+            raw_data = data.iloc[global_records, record_index]
+
+            # 用于整合识别到的数据与原始字段表
+            output_dataframe = pd.DataFrame(data=None,
+                                            columns=[field_name, field_name+'phone_records', field_name+'ID_records', field_name+'bank_records',
+                                                     field_name+'car_id_records',
+                                                     field_name+'name_records'])
+            output_dataframe[field_name] = raw_data
+        else:
+            output_dataframe = None
         #    for record_index in [13]:
         tempo_record_df_list = []
         record = tempo_records_list[record_index]
         if record is not None:
-            null_test = True
+            # null_test = True
             for key in keys:
-                nested_record_tuples = []
+                # nested_record_tuples = []
                 for value, index_list in list(record[key].items()):
                     for ls_index in index_list:
                         # TODO debug
-                        nested_record_tuples.append(str((value, ls_index)))
+                        # nested_record_tuples.append(str((value, ls_index)))
+                        output_dataframe.loc[ls_index, field_name+key] = str(value)
+            # TODO 写到sql中
+            if output_dataframe is not None:
+                output_dataframe_list.append(output_dataframe)
+    if len(output_dataframe_list) == 0:
+        return None
+    else:
+        return pd.concat(output_dataframe_list, axis=1)
 
-                if nested_record_tuples:
-                    null_test = False
-                tempo_record_df = pd.DataFrame(nested_record_tuples, columns=[key])
-                tempo_record_df_list.append(tempo_record_df)
-            try:
-                if null_test == False:
-                    item_record_df = pd.concat(tempo_record_df_list, axis=1)
-                    file_path2 = os.path.join(path2, str(tableName) + '#_#' + str(record_index) + '#_#' + str(
-                        tempo_column_list[record_index]).replace('/', '&') + '.xlsx')
-                    item_record_df.to_excel(file_path2)
-                    # item_record_df.to_sql()
-                else:
-                    continue
-            except:
-                continue
+
+
+            #     if nested_record_tuples:
+            #         null_test = False
+            #     tempo_record_df = pd.DataFrame(nested_record_tuples, columns=[key])
+            #     tempo_record_df_list.append(tempo_record_df)
+            #     # global_records = list(set(global_records))
+            # try:
+            #     if null_test == False:
+            #
+            #
+            #         item_record_df = pd.concat(tempo_record_df_list, axis=1)
+            #         file_path2 = os.path.join(path2, str(tableName) + '#_#' + str(record_index) + '#_#' + str(
+            #             tempo_column_list[record_index]).replace('/', '&') + '.xlsx')
+            #         item_record_df.to_excel(file_path2)
+            #         # item_record_df.to_sql()
+            #     else:
+            #         continue
+            # except:
+            #     continue
 
     # file_path = os.path.join(path1, 'proc_' + str(tableName) + '.xlsx')
     # tempo_df_fre.to_excel(file_path)

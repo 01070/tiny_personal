@@ -80,11 +80,14 @@ class Connect(object):
         return database
 
     def query(self, tableName):
+        self.cursor.execute("SHOW FULL COLUMNS FROM {}".format(tableName))
+        data = self.cursor.fetchall()
+        col = [c[8] if c[8] != '' else c[0] for c in data]
         self.cursor.execute("select * from " + tableName)
-        col = self.cursor.description
+        # col = self.cursor.description
         data = self.cursor.fetchall()
 
-        col = [c[0] for c in col]
+        # col = [c[0] for c in col]
         df = pd.DataFrame(list(data), columns=col)
 
         return df

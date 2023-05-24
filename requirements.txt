@@ -10,3 +10,4 @@ python-stdnum==1.18
 hanlp==2.1.0b45
 matplotlib==3.7.0
 openpyxl==3.0.10
+sqlalchemy==1.4.45

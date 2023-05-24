@@ -28,7 +28,7 @@ def identify():  # put application's code here
     return render_template("index.html", form=form)
 
 def select_table():
-
+    pass
 
 
 if __name__ == '__main__':

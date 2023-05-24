@@ -3,7 +3,7 @@ import os
 import time
 import datetime
 import copy
-import hanlp
+# import hanlp
 import pandas as pd
 from Constants import bankcode, areacode, data_conversion as dc, text_LAC as tl, type_judgment as tj, \
     data_processing as dp
@@ -27,6 +27,7 @@ def direct_phones(uni_ls=None, series=None):
     """
     针对先前被判定为纯数字的字段值，使用正则表达式，进行手机电话披露检测，返还包括披露数量、检测结果和采样值的字典集。
     """
+    records_list = []
     x = 0
     dict_res = {}
     sample = None
@@ -41,19 +42,21 @@ def direct_phones(uni_ls=None, series=None):
                 for j in num:
                     dict_res[j] = dict_value_index
                     x += 1
+                    records_list.extend(dict_value_index)
         test_res = dc.test(x, 1, 1)
         if extract:
             sample = ask_sample(dict_res, 5, random_state=42)
-        return {'phones': x, 'phone_test': test_res, 'phone_extract': sample}, dict_res
+        return {'phones': x, 'phone_test': test_res, 'phone_extract': sample}, dict_res, records_list
     else:
         test_res = dc.test(x, 1, 1)
-        return {'phones': x, 'phone_test': test_res, 'phone_extract': sample}, dict_res
+        return {'phones': x, 'phone_test': test_res, 'phone_extract': sample}, dict_res, records_list
 
 
 def direct_email(uni_ls=None, series=None):
     """
     检测邮箱。
     """
+    records_list = []
     x = 0
     dict_res = {}
     sample = None
@@ -68,18 +71,20 @@ def direct_email(uni_ls=None, series=None):
                 for j in num:
                     dict_res[j] = dict_value_index
                     x += 1
+                    records_list.extend(dict_value_index)
         test_res = dc.test(x, 1, 1)
         if extract:
             sample = ask_sample(dict_res, 5, random_state=42)
     else:
         test_res = dc.test(x, 1, 1)
-    return {'phones': x, 'phone_test': test_res, 'phone_extract': sample}, dict_res
+    return {'phones': x, 'phone_test': test_res, 'phone_extract': sample}, dict_res, records_list
 
 
 def direct_ip(uni_ls=None, series=None):
     """
     检测ip地址。
     """
+    records_list = []
     x = 0
     dict_res = {}
     sample = None
@@ -94,12 +99,13 @@ def direct_ip(uni_ls=None, series=None):
                 for j in num:
                     dict_res[j] = dict_value_index
                     x += 1
+                    records_list.extend(dict_value_index)
         test_res = dc.test(x, 1, 1)
         if extract:
             sample = ask_sample(dict_res, 5, random_state=42)
     else:
         test_res = dc.test(x, 1, 1)
-    return {'ip': x, 'ip_test': test_res, 'ip_extract': sample}, dict_res
+    return {'ip': x, 'ip_test': test_res, 'ip_extract': sample}, dict_res, records_list
 
 
 def get_current_date():
@@ -131,6 +137,7 @@ def direct_ID(uni_se=None, series=None, today=None, year=None):
     """
     针对先前被判定为纯数字的字段值，使用正则表达式，进行身份证号码披露检测，返还包括披露数量、检测结果和采样值的字典集。
     """
+    records_list = []
     x = 0
     dict_res = {}
     sample = None
@@ -149,23 +156,24 @@ def direct_ID(uni_se=None, series=None, today=None, year=None):
                         dict_value_index = dc.index_map_list(series, i)
                         dict_res[j] = dict_value_index
                         x += 1
+                        records_list.extend(dict_value_index)
                     else:
                         continue
 
         test_res = dc.test(x, 1, 1)
         if extract:
             sample = ask_sample(dict_res, 5, random_state=42)
-        return {'ID': x, 'ID_test': test_res, 'ID_extract': sample}, dict_res
+        return {'ID': x, 'ID_test': test_res, 'ID_extract': sample}, dict_res, records_list
     else:
         test_res = dc.test(x, 1, 1)
-        return {'ID': x, 'ID_test': test_res, 'ID_extract': sample}, dict_res
+        return {'ID': x, 'ID_test': test_res, 'ID_extract': sample}, dict_res, records_list
 
 
 def direct_bank(uni_ls=None, series=None, today=None, year=None):
     """
     针对先前被判定为纯数字的字段值，使用外部银行卡号码种类库，进行银行卡号码披露检测，返还包括披露数量、检测结果和采样值的字典集。
     """
-
+    records_list = []
     x = 0
     dict_res = {}
     sample = None
@@ -182,13 +190,14 @@ def direct_bank(uni_ls=None, series=None, today=None, year=None):
                     dict_value_index = dc.index_map_list(series, i)
                     dict_res[num] = dict_value_index
                     x += 1
+                    records_list.extend(dict_value_index)
         if extract:
             sample = ask_sample(dict_res, 5, random_state=42)
         test_res = dc.test(x, 1, 1)
-        return {'bank': x, 'bank_test': test_res, 'bank_extract': sample}, dict_res
+        return {'bank': x, 'bank_test': test_res, 'bank_extract': sample}, dict_res, records_list
     else:
         test_res = dc.test(x, 1, 1)
-        return {'bank': x, 'bank_test': test_res, 'bank_extract': sample}, dict_res
+        return {'bank': x, 'bank_test': test_res, 'bank_extract': sample}, dict_res, records_list
 
 
 def car_id(uni_ls=None, series=None):
@@ -196,6 +205,7 @@ def car_id(uni_ls=None, series=None):
     针对先前被判定为文本的字段值，使用正则表达式，进行车牌号码披露检测，返还包括披露数量、检测结果和采样值的字典集。
     车牌号码检测无法在分词结果中进行，只能直接判断。
     """
+    records_list = []
     x = 0
     dict_res = {}
     sample = None
@@ -211,19 +221,21 @@ def car_id(uni_ls=None, series=None):
                 for z in result:
                     dict_res[z] = dict_value_index
                     x += 1
+                    records_list.extend(dict_value_index)
         test_res = dc.test(x, 1, 1)
         if extract:
             sample = ask_sample(dict_res, 5, random_state=42)
-        return {'car_id': x, 'car_id_test': test_res, 'car_id_extract': sample}, dict_res
+        return {'car_id': x, 'car_id_test': test_res, 'car_id_extract': sample}, dict_res, records_list
     else:
         test_res = dc.test(x, 1, 1)
-        return {'car_id': x, 'car_id_test': test_res, 'car_id_extract': sample}, dict_res
+        return {'car_id': x, 'car_id_test': test_res, 'car_id_extract': sample}, dict_res, records_list
 
 
 def names_han(lac_result=None, uni_ls=None, series=None):
     """
     对于判定为文本的字段，均进行姓名检测，输入词性标注和主体识别结果，返还包括披露数量、检测结果和采样值的字典集。
     """
+    records_list = []
     dict_res = {}
     sample = None
     extract = False
@@ -238,19 +250,21 @@ def names_han(lac_result=None, uni_ls=None, series=None):
                     dict_value_index = dc.index_map_list(series, raw)
                     dict_res[temp] = dict_value_index
                     num_exposed += 1
+                    records_list.extend(dict_value_index)
         test_res = dc.test(num_exposed, 1, 1)
         if extract:
             sample = ask_sample(dict_res, 5, random_state=42)
-        return {'name': num_exposed, 'name_test': test_res, 'name_extract': sample}, dict_res
+        return {'name': num_exposed, 'name_test': test_res, 'name_extract': sample}, dict_res, records_list
     else:
         test_res = dc.test(num_exposed, 1, 1)
-        return {'name': num_exposed, 'name_test': test_res, 'name_extract': sample}, dict_res
+        return {'name': num_exposed, 'name_test': test_res, 'name_extract': sample}, dict_res, records_list
 
 
 def names(lac_result=None, uni_ls=None, series=None):
     """
     对于判定为文本的字段，均进行姓名检测，输入词性标注和主体识别结果，返还包括披露数量、检测结果和采样值的字典集。
     """
+    records_list = []
     dict_res = {}
     sample = None
     extract = False
@@ -263,15 +277,20 @@ def names(lac_result=None, uni_ls=None, series=None):
                     extract = True
                     raw = uni_ls[i]
                     dict_value_index = dc.index_map_list(series, raw)
-                    dict_res[target_text] = dict_value_index
+                    # 一个名字出现再次的情况
+                    if target_text in dict_res:
+                        dict_res[target_text] = dict_res[target_text] + dict_value_index
+                    else:
+                        dict_res[target_text] = dict_value_index
                     num_exposed += 1
+                    records_list.extend(dict_value_index)
         test_res = dc.test(num_exposed, 1, 1)
         if extract:
             sample = ask_sample(dict_res, 5, random_state=42)
-        return {'name': num_exposed, 'name_test': test_res, 'name_extract': sample}, dict_res
+        return {'name': num_exposed, 'name_test': test_res, 'name_extract': sample}, dict_res, records_list
     else:
         test_res = dc.test(num_exposed, 1, 1)
-        return {'name': num_exposed, 'name_test': test_res, 'name_extract': sample}, dict_res
+        return {'name': num_exposed, 'name_test': test_res, 'name_extract': sample}, dict_res, records_list
 
 
 def deid_names(lac_name_ratio_res=None):
@@ -285,6 +304,8 @@ def query_all_fields(df, de_id_threshold=0.1, str_len_threshold=200, ner_func="l
     """
     random_state = 1024
     today, year = get_current_date()
+    # 整个表中的记录列表
+    all_global_records = []
 
     seriesList = dp.dataset_to_series(df)
     num_uni_values_list = []
@@ -299,21 +320,21 @@ def query_all_fields(df, de_id_threshold=0.1, str_len_threshold=200, ner_func="l
     addr_like_columns_list = []
     addr_like_columns_regx = r'(住[所址]$)|(户籍)|(家庭地址)|(人员?地址)|(住所地址)|(社区(区划)?$)'
     names_like_columns_regx = r'(names?)|(者$)|(姓 ?名)|(人名)|(人?员名?[称字单]?[^\u4E00-\u9FA5]*$)|(.*人[^\u4E00-\u9FA5]*$)|(曾用名)|(法人代表[^\u4E00-\u9FA5]*$)'
-    if ner_func != "lac":
-        ner_func = hanlp.pipeline().append(hanlp.load('FINE_ELECTRA_SMALL_ZH'),
-                                           output_key='tok') \
-            .append(hanlp.load(hanlp.pretrained.ner.MSRA_NER_ELECTRA_SMALL_ZH))
+    # if ner_func != "lac":
+    #     ner_func = hanlp.pipeline().append(hanlp.load('FINE_ELECTRA_SMALL_ZH'),
+    #                                        output_key='tok') \
+    #         .append(hanlp.load(hanlp.pretrained.ner.MSRA_NER_ELECTRA_SMALL_ZH))
 
     def name_func():
         if ner_func == "lac":
             uni_ls_old = copy.copy(uni_ls)
             lac_res = tl.LAC_test(uni_ls, lac_lac)
-            name_res, name_records = names(lac_res, uni_ls_old, series)
+            name_res, name_records, name_records_list = names(lac_res, uni_ls_old, series)
 
         else:
             han_res = ner_func(uni_ls)
-            name_res, name_records = names_han(han_res, uni_ls, series)
-        return name_res, name_records
+            name_res, name_records, name_records_list = names_han(han_res, uni_ls, series)
+        return name_res, name_records, name_records_list
 
     for index, column in enumerate(column_names):
         names_like_column = re.search(names_like_columns_regx, column)
@@ -377,46 +398,46 @@ def query_all_fields(df, de_id_threshold=0.1, str_len_threshold=200, ner_func="l
         # default_skip_words = ['序号', '主键ID', '时间', '地址', '住址', '日期', '企业名', '单位名', '活动名']
         # default_skip_full_words = ['单位', '企业', '辖区']
 
-        skip = False
-
-        # 现阶段仍忽略字段平均文本长度超过阈值的字段。默认的阈值为200，200字符长度非常长了。
-        # 这里后续再想方法如何高效地处理长文本，可能弹出采样？让用户决定是否进行忽略。
-        # if item_str_length >= str_len_threshold:
-        #     skip = True
-
-        # 默认的忽略关键词检测，若为真则直接忽略
-        if skip:
-            # 忽略关键词检测，若为真则略过
-            sample_list.append(sample)
-            phone_res, phone_records = direct_phones()
-            ID_res, ID_records = direct_ID()
-            bank_res, bank_records = direct_bank()
-            name_res, name_records = names()
-            car_id_res, car_id_records = car_id()
-
-            de_id_test_ = 0 if de_id_ratio <= de_id_threshold else 1
-            test_res_list.append({'de_id_res': {'de_id_ratio': de_id_ratio, 'de_id_test': de_id_test_},
-                                  'phones_res': phone_res,
-                                  'ID_res': ID_res,
-                                  'bank_res': bank_res,
-                                  'name_res': name_res,
-                                  'car_id_res': car_id_res})
-
-            test_records_list.append({'phone_records': phone_records,
-                                      'ID_records': ID_records,
-                                      'bank_records': bank_records,
-                                      'car_id_records': car_id_records,
-                                      'name_records': name_records})
-            continue
+        # skip = False
+        #
+        # # 现阶段仍忽略字段平均文本长度超过阈值的字段。默认的阈值为200，200字符长度非常长了。
+        # # 这里后续再想方法如何高效地处理长文本，可能弹出采样？让用户决定是否进行忽略。
+        # # if item_str_length >= str_len_threshold:
+        # #     skip = True
+        #
+        # # 默认的忽略关键词检测，若为真则直接忽略
+        # if skip:
+        #     # 忽略关键词检测，若为真则略过
+        #     sample_list.append(sample)
+        #     phone_res, phone_records, phone_records_list = direct_phones()
+        #     ID_res, ID_records, ID_records_list = direct_ID()
+        #     bank_res, bank_records, bank_records_list = direct_bank()
+        #     name_res, name_records, name_records_list = names()
+        #     car_id_res, car_id_records, car_records_list = car_id()
+        #
+        #     de_id_test_ = 0 if de_id_ratio <= de_id_threshold else 1
+        #     test_res_list.append({'de_id_res': {'de_id_ratio': de_id_ratio, 'de_id_test': de_id_test_},
+        #                           'phones_res': phone_res,
+        #                           'ID_res': ID_res,
+        #                           'bank_res': bank_res,
+        #                           'name_res': name_res,
+        #                           'car_id_res': car_id_res})
+        #
+        #     test_records_list.append({'phone_records': phone_records,
+        #                               'ID_records': ID_records,
+        #                               'bank_records': bank_records,
+        #                               'car_id_records': car_id_records,
+        #                               'name_records': name_records})
+        #     continue
 
         if digitest == 1:
             # 数字检测，若字符串为纯数字则不进行分词，直接进行手机号、身份证号和银行卡号的检测
             # 若为非纯数字，则进行分词和所有检测
-            phone_res, phone_records = direct_phones(uni_ls, series)
-            ID_res, ID_records = direct_ID(uni_ls, series, today, year)
-            bank_res, bank_records = direct_bank(uni_ls, series, today, year)
-            car_id_res, car_id_records = car_id()
-            name_res, name_records = names()
+            phone_res, phone_records, phone_records_list = direct_phones(uni_ls, series)
+            ID_res, ID_records, ID_records_list = direct_ID(uni_ls, series, today, year)
+            bank_res, bank_records, bank_records_list = direct_bank(uni_ls, series, today, year)
+            car_id_res, car_id_records, car_records_list = car_id()
+            name_res, name_records, name_records_list = names()
             test_res_list.append(
                 {'de_id_res': {'de_id_ratio': de_id_ratio, 'de_id_test': 0}, 'phones_res': phone_res, 'ID_res': ID_res,
                  'bank_res': bank_res, 'name_res': name_res, 'car_id_res': car_id_res, })
@@ -431,10 +452,10 @@ def query_all_fields(df, de_id_threshold=0.1, str_len_threshold=200, ner_func="l
             if de_id_ratio <= de_id_threshold:
                 # 判定字段去标识化程度，小于阈值则被认为没有进行去标识化或去标识化程度较低，需要进行常规的所有检测。
 
-                car_id_res, car_id_records = car_id(uni_ls, series)
-                ID_res, ID_records = direct_ID(uni_ls, series, today, year)
-                phone_res, phone_records = direct_phones(uni_ls, series)
-                bank_res, bank_records = direct_bank(uni_ls, series)
+                phone_res, phone_records, phone_records_list = direct_phones(uni_ls, series)
+                ID_res, ID_records, ID_records_list = direct_ID(uni_ls, series, today, year)
+                bank_res, bank_records, bank_records_list = direct_bank(uni_ls, series, today, year)
+                car_id_res, car_id_records, car_records_list = car_id(uni_ls, series)
                 if seg_condition_test:
                     # 分词条件判断检测，若字段值中出现中文、句号和空格及下划线，则分词条件判断为真
                     # recall_mode
@@ -458,18 +479,18 @@ def query_all_fields(df, de_id_threshold=0.1, str_len_threshold=200, ner_func="l
                                     else:
                                         lac_res.append([[name], ['None']])
 
-                                name_res, name_records = names(lac_res, uni_ls, series)
+                                name_res, name_records, name_records_list = names(lac_res, uni_ls, series)
                             else:
-                                name_res, name_records = name_func()
+                                name_res, name_records, name_records_list = name_func()
                         else:
-                            name_res, name_records = name_func()
+                            name_res, name_records, name_records_list = name_func()
 
                     else:
-                        name_res, name_records = name_func()
+                        name_res, name_records, name_records_list = name_func()
 
 
                 else:
-                    name_res, name_records = names()
+                    name_res, name_records, name_records_list = names()
 
                 test_res_list.append(
                     {'de_id_res': {'de_id_ratio': de_id_ratio, 'de_id_test': 0}, 'phones_res': phone_res,
@@ -487,19 +508,20 @@ def query_all_fields(df, de_id_threshold=0.1, str_len_threshold=200, ner_func="l
                 # 将*替换为数字以试探性进行手机电话的检测
                 # 同时也可以试探性进行去标识化姓名的检测
                 # 以便后续在重标识分析中判定去标识化字段的所属信息类型
-                car_id_res, car_id_records = car_id()
-                ID_res, ID_records = direct_ID(uni_ls, series, today, year)
-                phone_res, phone_records = direct_phones(uni_ls, series)
-                bank_res, bank_records = direct_bank(uni_ls, series)
+
+                phone_res, phone_records, phone_records_list = direct_phones(uni_ls, series)
+                ID_res, ID_records, ID_records_list = direct_ID(uni_ls, series, today, year)
+                bank_res, bank_records, bank_records_list = direct_bank(uni_ls, series, today, year)
+                car_id_res, car_id_records, car_records_list = car_id()
 
                 if seg_condition_test:
                     # TODO
                     # seg_res = tl.LAC_seg_test(uni_ls, lac_seg)
-                    name_res, name_records = name_func()
+                    name_res, name_records, name_records_list = name_func()
                     # name_res, name_records = names()
 
                 else:
-                    name_res, name_records = names()
+                    name_res, name_records, name_records_list = names()
 
                 test_res_list.append(
                     {'de_id_res': {'de_id_ratio': de_id_ratio, 'de_id_test': 1}, 'phones_res': phone_res,
@@ -512,8 +534,9 @@ def query_all_fields(df, de_id_threshold=0.1, str_len_threshold=200, ner_func="l
                                           'car_id_records': car_id_records,
                                           'name_records': name_records})
         sample_list.append(sample)
-
-    return [column_names, ratio_list, sample_list, test_res_list], test_records_list, column_names
+        global_records_list = name_records_list + phone_records_list + ID_records_list + car_records_list + bank_records_list
+        all_global_records.append(sorted(set(global_records_list)))
+    return [column_names, ratio_list, sample_list, test_res_list], test_records_list, column_names, all_global_records
 
 
 def run(data_dire, df_p='../data/Intermediate_data/per_info/df.pkl'):

@@ -20,8 +20,8 @@ parser.add_argument("--target_city_dataset", default='../data/input_data/嘉兴�
 parser.add_argument("--target_city",         default='../data/input_data/嘉兴市数据集重置目录demo.xlsx', type=str, help='待预测的数据集目录')
 parser.add_argument("--Dis_ins_data",        default='../data/input_data/嘉兴市数据集-个人信息披露检查predict.xlsx', type=str, help='生成的个人信息披露检查结果')
 
-parser.add_argument("--database", default='personal_information', type=str)
-parser.add_argument("--table", default='information', type=str)
+parser.add_argument("--database", default='per_info', type=str)
+parser.add_argument("--table", default='jiaxing', type=str)
 
 
 args = parser.parse_args()
