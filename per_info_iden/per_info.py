@@ -9,7 +9,7 @@ from Constants import bankcode, areacode, data_conversion as dc, text_LAC as tl,
     data_processing as dp
 import warnings
 from LAC import LAC
-from stdnum import luhn
+from Constants import luhn
 
 warnings.filterwarnings("ignore")
 
@@ -277,7 +277,7 @@ def names(lac_result=None, uni_ls=None, series=None):
                     extract = True
                     raw = uni_ls[i]
                     dict_value_index = dc.index_map_list(series, raw)
-                    # 一个名字出现再次的情况
+                    # 一个名字出现多次的情况
                     if target_text in dict_res:
                         dict_res[target_text] = dict_res[target_text] + dict_value_index
                     else:
@@ -298,7 +298,7 @@ def deid_names(lac_name_ratio_res=None):
     return {'name': lac_name_ratio_res, 'name_test': 0}, dict_res
 
 
-def query_all_fields(df, de_id_threshold=0.1, str_len_threshold=200, ner_func="lac", recall_mode=False):
+def query_all_fields(df, de_id_threshold=0.1, recall_mode=False):
     """
     遍历读取查询数据集全部字段有针对性的完成检测。默认去标识化比例阈值为0.5，默认字段记录字符长度阈值为200.
     """
@@ -318,23 +318,26 @@ def query_all_fields(df, de_id_threshold=0.1, str_len_threshold=200, ner_func="l
     #########################################################
     names_like_columns_list = []
     addr_like_columns_list = []
-    addr_like_columns_regx = r'(住[所址]$)|(户籍)|(家庭地址)|(人员?地址)|(住所地址)|(社区(区划)?$)'
+    addr_like_columns_regx = r'(住[所址]$)|(户籍)|(地址$)|(社区(区划)?$)'
     names_like_columns_regx = r'(names?)|(者$)|(姓 ?名)|(人名)|(人?员名?[称字单]?[^\u4E00-\u9FA5]*$)|(.*人[^\u4E00-\u9FA5]*$)|(曾用名)|(法人代表[^\u4E00-\u9FA5]*$)'
     # if ner_func != "lac":
     #     ner_func = hanlp.pipeline().append(hanlp.load('FINE_ELECTRA_SMALL_ZH'),
     #                                        output_key='tok') \
     #         .append(hanlp.load(hanlp.pretrained.ner.MSRA_NER_ELECTRA_SMALL_ZH))
 
-    def name_func():
-        if ner_func == "lac":
-            uni_ls_old = copy.copy(uni_ls)
-            lac_res = tl.LAC_test(uni_ls, lac_lac)
-            name_res, name_records, name_records_list = names(lac_res, uni_ls_old, series)
+    def name_func(uni_ls=None):
+        person_num = 0
+        uni_ls_old = copy.copy(uni_ls)
+        lac_res = tl.LAC_test(uni_ls_old, lac_lac)
+        for i in range(len(lac_res)):
+            if 'PER' in lac_res[i][1]:
+                target_text = lac_res[i][0][lac_res[i][1].index('PER')]
+                if 1 < len(target_text) <= 4 and tj.is_chinese2(target_text):
+                    person_num += 1
 
-        else:
-            han_res = ner_func(uni_ls)
-            name_res, name_records, name_records_list = names_han(han_res, uni_ls, series)
-        return name_res, name_records, name_records_list
+
+
+        return person_num
 
     for index, column in enumerate(column_names):
         names_like_column = re.search(names_like_columns_regx, column)
@@ -460,10 +463,20 @@ def query_all_fields(df, de_id_threshold=0.1, str_len_threshold=200, ner_func="l
                     # 分词条件判断检测，若字段值中出现中文、句号和空格及下划线，则分词条件判断为真
                     # recall_mode
                     # 如果字段名中有地址、且人名识别率不高，则跳过
+                    if recall_mode and index in addr_like_columns_list and len(seriesList[index]) > 100:
 
+                        sample = seriesList[index].sample(100).fillna(" ")
 
-                    if recall_mode and index in names_like_columns_list and len(seriesList[index]) > 100:
-                        lac_res = []
+                        person_num = name_func(sample.tolist())
+                        # 是否满足阈值要求，不满足则进行常规识别
+                        if person_num < 50:
+                            name_res, name_records, name_records_list = names()
+                        else:
+                            lac_res = lac_lac.run(uni_ls)
+                            name_res, name_records, name_records_list = names(lac_res, uni_ls, series)
+
+                    elif recall_mode and index in names_like_columns_list and len(seriesList[index]) > 100:
+                        lac_res_new = []
                         series_len = seriesList[index].dropna().apply(lambda x: len(str(x)))
                         series_mean_len = series_len.mean()
                         series_std_len = series_len.std()
@@ -475,18 +488,23 @@ def query_all_fields(df, de_id_threshold=0.1, str_len_threshold=200, ner_func="l
                             if ratio > 0.9:
                                 for name in uni_ls:
                                     if 2 <= len(name) <= 4:
-                                        lac_res.append([[name], ['PER']])
+                                        lac_res_new.append([[name], ['PER']])
                                     else:
-                                        lac_res.append([[name], ['None']])
+                                        lac_res_new.append([[name], ['None']])
 
-                                name_res, name_records, name_records_list = names(lac_res, uni_ls, series)
+                                name_res, name_records, name_records_list = names(lac_res_new, uni_ls, series)
                             else:
-                                name_res, name_records, name_records_list = name_func()
+                                uni_ls_copy = copy.copy(uni_ls)
+                                lac_res = lac_lac.run(uni_ls_copy)
+                                name_res, name_records, name_records_list = names(lac_res, uni_ls, series)
                         else:
-                            name_res, name_records, name_records_list = name_func()
-
+                            uni_ls_copy = copy.copy(uni_ls)
+                            lac_res = lac_lac.run(uni_ls_copy)
+                            name_res, name_records, name_records_list = names(lac_res, uni_ls, series)
                     else:
-                        name_res, name_records, name_records_list = name_func()
+                        uni_ls_copy = copy.copy(uni_ls)
+                        lac_res = lac_lac.run(uni_ls_copy)
+                        name_res, name_records, name_records_list = names(lac_res, uni_ls, series)
 
 
                 else:
@@ -516,8 +534,9 @@ def query_all_fields(df, de_id_threshold=0.1, str_len_threshold=200, ner_func="l
 
                 if seg_condition_test:
                     # TODO
+
                     # seg_res = tl.LAC_seg_test(uni_ls, lac_seg)
-                    name_res, name_records, name_records_list = name_func()
+                    name_res, name_records, name_records_list = names()
                     # name_res, name_records = names()
 
                 else:

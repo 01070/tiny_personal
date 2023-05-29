@@ -26,9 +26,9 @@ parser.add_argument("--table", default='jiaxing', type=str)
 
 args = parser.parse_args()
 
-if not os.path.exists(args.save_path):
-    os.makedirs(args.save_path)
-if not os.path.exists(args.save_path2):
-    os.makedirs(args.save_path2)
-if not os.path.exists(args.save_path3):
-    os.makedirs(args.save_path3)
+# if not os.path.exists(args.save_path):
+#     os.makedirs(args.save_path)
+# if not os.path.exists(args.save_path2):
+#     os.makedirs(args.save_path2)
+# if not os.path.exists(args.save_path3):
+#     os.makedirs(args.save_path3)

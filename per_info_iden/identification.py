@@ -19,25 +19,14 @@ def mkdir(path):
         print('文件夹已经存在：', path)
 
 
-def info_identification(data, tableName, path2="Intermediate_data/per_info/识别记录保存", ner_func="lac", recall_mode=False):
+def info_identification(data, recall_mode=False):
     # 如果是张空表，直接跳过
     if len(data) == 0:
         return None
-    if not os.path.exists(path2):
-        mkdir(path2)
 
     # pi.query_all_fields中tempo_column_list用于生成识别记录保存，tempo_column_list列名
-    tempo_list, tempo_records_list, tempo_column_list, global_records_list = pi.query_all_fields(data, ner_func=ner_func,
-                                                                            recall_mode=recall_mode)
-
-    # tempo_df_fre = pd.DataFrame({
-    #     'filecode': str(tableName),
-    #     # 'title': tempo_title,
-    #     'items': tempo_list[0],
-    #     'ratio': tempo_list[1],
-    #     'sample': tempo_list[2],
-    #     'test_res': tempo_list[3]
-    # })
+    tempo_list, tempo_records_list, tempo_column_list, global_records_list = pi.query_all_fields(data,
+                                                                                recall_mode=recall_mode)
     keys = ['phone_records', 'ID_records', 'bank_records', 'car_id_records', 'name_records']
     # 用于保存所有的字段识别到的结果
     output_dataframe_list = []
@@ -82,27 +71,3 @@ def info_identification(data, tableName, path2="Intermediate_data/per_info/识�
         return None
     else:
         return pd.concat(output_dataframe_list, axis=1)
-
-
-
-            #     if nested_record_tuples:
-            #         null_test = False
-            #     tempo_record_df = pd.DataFrame(nested_record_tuples, columns=[key])
-            #     tempo_record_df_list.append(tempo_record_df)
-            #     # global_records = list(set(global_records))
-            # try:
-            #     if null_test == False:
-            #
-            #
-            #         item_record_df = pd.concat(tempo_record_df_list, axis=1)
-            #         file_path2 = os.path.join(path2, str(tableName) + '#_#' + str(record_index) + '#_#' + str(
-            #             tempo_column_list[record_index]).replace('/', '&') + '.xlsx')
-            #         item_record_df.to_excel(file_path2)
-            #         # item_record_df.to_sql()
-            #     else:
-            #         continue
-            # except:
-            #     continue
-
-    # file_path = os.path.join(path1, 'proc_' + str(tableName) + '.xlsx')
-    # tempo_df_fre.to_excel(file_path)

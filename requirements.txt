@@ -1,13 +1,7 @@
-altair==4.2.2
 numpy==1.20.1
 pandas==1.4.4
 PyMySQL==1.0.2
-streamlit==1.18.1
-streamlit-authenticator==0.2.1
 lac==2.1.2
-seaborn==0.11.2
-python-stdnum==1.18
-hanlp==2.1.0b45
-matplotlib==3.7.0
-openpyxl==3.0.10
 sqlalchemy==1.4.45
+flask==2.3.2
+flask_wtf==1.1.1
